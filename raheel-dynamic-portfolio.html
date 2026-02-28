@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raheel | Responsive Omniverse Engine</title>
+    <style>
+        /* ==========================================================================
+           THE OMNIVERSE: FULLY RESPONSIVE 3D MATH & MATRIX SHUTTER
+           ========================================================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;700;900&display=swap');
+
+        :root { --bg: #020202; --accent: #00ffaa; --text: #ffffff; --ease: cubic-bezier(0.85, 0, 0.15, 1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Apply custom cursor ONLY on devices that support hover (Desktops) */
+        @media (hover: hover) and (pointer: fine) {
+            * { cursor: none; }
+        }
+        
+        body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; }
+
+        /* LIVE 3D SPHERE CANVAS */
+        #hologram-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.6; mix-blend-mode: screen; }
+
+        /* EXCLUSION MAGNETIC CURSOR (Hidden on Mobile) */
+        .cursor-core { position: fixed; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; box-shadow: 0 0 20px var(--accent); display: none; }
+        .cursor-ring { position: fixed; width: 50px; height: 50px; border: 1px dashed var(--accent); border-radius: 50%; z-index: 9998; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.15s, height 0.15s, transform 0.1s; animation: spinRing 10s linear infinite; display: none; }
+        @keyframes spinRing { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        
+        @media (hover: hover) and (pointer: fine) {
+            .cursor-core, .cursor-ring { display: block; }
+            body.hovering .cursor-core { width: 100px; height: 100px; background: rgba(0, 255, 170, 0.15); border: 1px solid var(--accent); box-shadow: none; backdrop-filter: blur(5px); }
+            body.hovering .cursor-ring { opacity: 0; }
+        }
+
+        /* 50-SLICE MATRIX TRANSITION */
+        .shatter-overlay { position: fixed; inset: 0; display: flex; z-index: 9000; pointer-events: none; }
+        .shard { flex: 1; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform 0.5s cubic-bezier(0.85, 0, 0.15, 1); }
+        body.transitioning .shard { transform: scaleY(1); transform-origin: top; }
+
+        /* HEADER */
+        header { position: fixed; width: 100%; padding: 2rem 5vw; display: flex; justify-content: space-between; align-items: center; z-index: 1000; mix-blend-mode: difference; }
+        .logo { font-family: 'Syncopate', sans-serif; font-size: clamp(1.2rem, 3vw, 2rem); font-weight: 700; letter-spacing: 5px; text-transform: uppercase; cursor: pointer; }
+        .logo span { color: var(--accent); }
+        .nav-btn { font-family: 'Syncopate', sans-serif; font-size: 0.8rem; letter-spacing: 2px; color: var(--text); text-transform: uppercase; font-weight: 700; transition: color 0.3s; cursor: pointer; }
+        .nav-btn:hover { color: var(--accent); }
+
+        /* SPA ROUTING LOGIC */
+        #app { position: relative; z-index: 10; min-height: 100vh; }
+        .view { display: none; opacity: 0; }
+        .view.active { display: block; animation: quantumRise 1.2s 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes quantumRise { from { opacity: 0; transform: translateY(40px); filter: blur(10px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+
+        /* HERO SECTION */
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 5vw 40px; }
+        .hero-title { font-family: 'Syncopate', sans-serif; font-size: clamp(3.5rem, 10vw, 13rem); font-weight: 700; line-height: 0.9; text-transform: uppercase; letter-spacing: -2px; }
+        .hologram { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.4); transition: all 0.4s; display: block; }
+        @media (hover: hover) { .hologram:hover { -webkit-text-stroke: 1px var(--accent); text-shadow: 0 0 50px rgba(0, 255, 170, 0.4); transform: translateX(20px); } }
+        
+        .hero-desc { font-size: clamp(1.1rem, 2vw, 1.5rem); color: #aaa; max-width: 800px; margin-top: 2rem; font-weight: 300; border-left: 2px solid var(--accent); padding-left: 20px; }
+
+        /* RESPONSIVE BUTTON */
+        .magnet-wrap { display: inline-block; padding: 2rem 0; margin-top: 2rem; cursor: pointer; }
+        .magnet-btn { width: clamp(140px, 15vw, 180px); height: clamp(140px, 15vw, 180px); border-radius: 50%; border: 1px dashed rgba(0, 255, 170, 0.5); display: flex; align-items: center; justify-content: center; font-family: 'Syncopate', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; transition: all 0.4s; position: relative; overflow: hidden; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
+        .magnet-btn::before { content: ''; position: absolute; inset: 0; background: var(--accent); transform: scale(0); border-radius: 50%; transition: transform 0.5s var(--ease); z-index: -1; }
+        
+        @media (hover: hover) {
+            .magnet-wrap { padding: 40px; }
+            .magnet-wrap:hover .magnet-btn::before { transform: scale(1); }
+            .magnet-wrap:hover .magnet-btn { color: #000; border: none; box-shadow: 0 0 60px rgba(0, 255, 170, 0.5); }
+        }
+
+        /* PROJECT GALLERY */
+        .work-list { padding: 8vw 5vw; }
+        .work-list-title { font-family: 'Syncopate', sans-serif; font-size: clamp(3.5rem, 8vw, 6rem); margin-bottom: 6vw; }
+        .work-item { padding: 8vw 0; display: grid; grid-template-columns: 1fr; gap: 4vw; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .work-tag { color: var(--accent); font-family: 'Syncopate', sans-serif; font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 1rem; display: block; }
+        .work-info h2 { font-family: 'Syncopate', sans-serif; font-size: clamp(2.5rem, 5vw, 6rem); font-weight: 700; line-height: 1; margin-bottom: 1rem; letter-spacing: -1px; }
+        .work-info p { font-size: 1.1rem; color: #888; margin-bottom: 2rem; }
+        
+        .img-matrix { width: 100%; height: 50vh; position: relative; overflow: hidden; border-radius: 12px; background: #111; clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); transition: clip-path 1.5s var(--ease); }
+        .img-matrix.in-view { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+        .p-img { width: 100%; height: 120%; object-fit: cover; object-position: center; transform: translateY(-10%); transition: filter 0.5s; filter: grayscale(100%); }
+        
+        @media (hover: hover) { .img-matrix:hover .p-img { filter: grayscale(0%); } }
+
+        /* DESKTOP GALLERY OVERRIDES */
+        @media (min-width: 1024px) {
+            .work-item { grid-template-columns: 1fr 1.5fr; gap: 8vw; align-items: center; }
+            .work-item:nth-child(even) { grid-template-columns: 1.5fr 1fr; }
+            .work-item:nth-child(even) .work-info { order: 2; padding-left: 4vw; }
+            .work-item:nth-child(even) .img-matrix { order: 1; }
+            .img-matrix { height: 700px; }
+        }
+
+        /* CASE STUDY HUD */
+        .cs-hero { height: 70vh; position: relative; display: flex; align-items: flex-end; padding: 5vw; }
+        .cs-hero-img { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; z-index: 1; opacity: 0.3; mix-blend-mode: screen; animation: panBg 25s infinite alternate linear; }
+        @keyframes panBg { to { transform: scale(1.1) translate(-2%, 2%); } }
+        .cs-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 0%, transparent 100%); z-index: 2; }
+        
+        .cs-title-wrap { position: relative; z-index: 3; }
+        .cs-title-wrap h1 { font-family: 'Syncopate', sans-serif; font-size: clamp(3rem, 8vw, 9rem); font-weight: 700; line-height: 0.9; letter-spacing: -2px; margin-top: 1rem; }
+        
+        .cs-grid { display: grid; grid-template-columns: 1fr; gap: 4vw; padding: 8vw 5vw; border-top: 1px solid rgba(255,255,255,0.1); }
+        .cs-label { font-family: 'Syncopate', sans-serif; font-size: 0.9rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+        .cs-desc { font-size: clamp(1.2rem, 3vw, 2rem); color: #ccc; line-height: 1.6; margin-bottom: 3rem; font-weight: 300; }
+        
+        .data-hud { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; }
+        .data-row { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1.2rem; }
+        .data-row span:last-child { font-family: 'Syncopate', sans-serif; font-weight: 700; color: var(--accent); letter-spacing: 1px; font-size: clamp(1rem, 2vw, 1.2rem); }
+        .data-row span:first-child { color: #666; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; }
+
+        @media (min-width: 1024px) {
+            .cs-grid { grid-template-columns: 1fr 2fr; gap: 8vw; }
+            .data-row { flex-direction: row; justify-content: space-between; align-items: center; padding: 2.5rem 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="hologram-canvas"></canvas>
+    
+    <div class="shatter-overlay" id="shatter-grid"></div>
+
+    <div class="cursor-ring"></div>
+    <div class="cursor-core"></div>
+
+    <header>
+        <div class="logo target" onclick="triggerWipe('home')">RAHEEL<span>.</span></div>
+        <div class="nav-btn target" onclick="triggerWipe('home')">Return Core</div>
+    </header>
+
+    <main id="app">
+        <div id="home" class="view active">
+            <section class="hero">
+                <h1 class="hero-title">
+                    <span class="hologram target">OMNIVERSE</span>
+                    <span style="color: var(--text);">ENGINE.</span>
+                </h1>
+                <p class="hero-desc">You are witnessing the absolute limit of browser capability. I coded a live 3D Holographic Sphere in Vanilla JS that mathematically calculates X, Y, and Z depth, adjusting flawlessly to desktop, tablet, and mobile displays.</p>
+                
+                <div class="magnet-wrap target" onclick="triggerWipe('projects')">
+                    <div class="magnet-btn"><span class="magnet-text">Initialize</span></div>
+                </div>
+            </section>
+        </div>
+
+        <div id="projects" class="view">
+            <section class="work-list">
+                <h1 class="work-list-title hologram">DEPLOYMENTS.</h1>
+                
+                <div class="work-item">
+                    <div class="work-info">
+                        <span class="work-tag">01 // Industrial Manufacturing</span>
+                        <h2>Aegis Foundry</h2>
+                        <p>A colossal infrastructure engineered to showcase heavy manufacturing capabilities. Custom WebGL logic replaces traditional scrolling for ultimate global dominance.</p>
+                        <div class="magnet-wrap target" onclick="triggerWipe('case-study', 'aegis')">
+                            <div class="magnet-btn" style="width: 120px; height: 120px; font-size:0.8rem;"><span class="magnet-text">Decrypt</span></div>
+                        </div>
+                    </div>
+                    <div class="img-matrix scroll-shutter target">
+                        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80" class="p-img">
+                    </div>
+                </div>
+
+                <div class="work-item">
+                    <div class="img-matrix scroll-shutter target">
+                        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80" class="p-img">
+                    </div>
+                    <div class="work-info">
+                        <span class="work-tag">02 // Aerospace Technology</span>
+                        <h2>Novus Systems</h2>
+                        <p>An impenetrable landing portal for satellite technology. Matrix shattering transitions and responsive data visualizers perfectly adapt to any device.</p>
+                        <div class="magnet-wrap target" onclick="triggerWipe('case-study', 'novus')">
+                            <div class="magnet-btn" style="width: 120px; height: 120px; font-size:0.8rem;"><span class="magnet-text">Decrypt</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="case-study" class="view">
+            <div class="cs-hero">
+                <img id="cs-img" class="cs-hero-img" src="">
+                <div class="cs-title-wrap">
+                    <span class="work-tag" id="cs-tag">Category</span>
+                    <h1 id="cs-title">Project</h1>
+                </div>
+            </div>
+            <div class="cs-grid">
+                <div class="cs-label">Core Loop</div>
+                <div>
+                    <p class="cs-desc" id="cs-desc">Desc</p>
+                    <div id="cs-data" class="data-hud"></div>
+                    <div class="magnet-wrap target" onclick="triggerWipe('projects')">
+                        <div class="magnet-btn" style="width:130px; height:130px; font-size: 0.8rem;"><span class="magnet-text">Return</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. GENERATE 50-SLICE SHUTTER (RESPONSIVE)
+        // ==========================================
+        const shatterGrid = document.getElementById('shatter-grid');
+        for(let i=0; i<50; i++) {
+            let shard = document.createElement('div');
+            shard.className = 'shard';
+            shard.style.transitionDelay = `${Math.random() * 0.4}s`; 
+            shatterGrid.appendChild(shard);
+        }
+
+        const db = {
+            'aegis': {
+                title: 'Aegis Foundry.', tag: 'Industrial Tech', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80',
+                desc: 'A colossal interactive infrastructure built to showcase global manufacturing capabilities. Engineered with bounded parallax mechanics to communicate absolute scale across desktop and mobile.',
+                data: [['Production Output', '1,500 MT / Yr'], ['Physics Engine', 'Custom WebGL'], ['Interaction Model', 'Responsive Gravity']]
+            },
+            'novus': {
+                title: 'Novus Systems.', tag: 'Aerospace', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80',
+                desc: 'An impenetrable digital environment built for a leading satellite technology firm. Replaced standard web rendering with responsive mathematical UI algorithms.',
+                data: [['Data Processing', 'Real-Time API'], ['Server Architecture', 'Zero-Latency SPA'], ['Mobile Fidelity', '120Hz Refresh Logic']]
+            }
+        };
+
+        function triggerWipe(viewId, projectId = null) {
+            document.body.classList.add('transitioning');
+            
+            setTimeout(() => {
+                if(projectId && db[projectId]) {
+                    const p = db[projectId];
+                    document.getElementById('cs-title').innerText = p.title;
+                    document.getElementById('cs-tag').innerText = p.tag;
+                    document.getElementById('cs-img').src = p.img;
+                    document.getElementById('cs-desc').innerText = p.desc;
+                    document.getElementById('cs-data').innerHTML = p.data.map(d => `<div class="data-row"><span>${d[0]}</span><span>${d[1]}</span></div>`).join('');
+                }
+
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById(viewId).classList.add('active');
+                window.scrollTo(0,0);
+                initObservers(); // Re-trigger image reveals
+            }, 700);
+
+            setTimeout(() => { 
+                document.body.classList.remove('transitioning'); 
+                document.querySelectorAll('.shard').forEach(s => s.style.transitionDelay = `${Math.random() * 0.4}s`);
+            }, 1400);
+        }
+
+        // ==========================================
+        // 2. LIVE 3D HOLOGRAPHIC SPHERE (RESPONSIVE MATH)
+        // ==========================================
+        const canvas = document.getElementById('hologram-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        let particles = [];
+        const numParticles = width > 768 ? 800 : 400; // Less particles on mobile for performance
+        let sphereRadius = Math.min(width, height) * (width > 768 ? 0.4 : 0.6); // Bigger relative size on mobile
+        
+        let mouseX = 0.5, mouseY = 0.5; // Default slow spin
+        
+        // Only track mouse on desktop
+        if(window.matchMedia("(hover: hover)").matches) {
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX - width / 2) / (width / 2);
+                mouseY = (e.clientY - height / 2) / (height / 2);
+            });
+        }
+
+        function initSphere() {
+            particles = [];
+            sphereRadius = Math.min(width, height) * (width > 768 ? 0.4 : 0.6);
+            for (let i = 0; i < numParticles; i++) {
+                let phi = Math.acos(-1 + (2 * i) / numParticles);
+                let theta = Math.sqrt(numParticles * Math.PI) * phi;
+                let x = sphereRadius * Math.cos(theta) * Math.sin(phi);
+                let y = sphereRadius * Math.sin(theta) * Math.sin(phi);
+                let z = sphereRadius * Math.cos(phi);
+                particles.push({x, y, z});
+            }
+        }
+
+        function animateSphere() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Auto-rotate on mobile, mouse-rotate on desktop
+            let rotX = window.matchMedia("(hover: hover)").matches ? mouseY * 0.05 : 0.01;
+            let rotY = window.matchMedia("(hover: hover)").matches ? -mouseX * 0.05 : 0.02;
+            
+            let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+            let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                let y1 = p.y * cosX - p.z * sinX;
+                let z1 = p.y * sinX + p.z * cosX;
+                let x2 = p.x * cosY + z1 * sinY;
+                let z2 = -p.x * sinY + z1 * cosY;
+                
+                p.x = x2; p.y = y1; p.z = z2;
+                
+                let scale = 1000 / (1000 - p.z);
+                let x2d = (p.x * scale) + width / 2;
+                let y2d = (p.y * scale) + height / 2;
+                let size = Math.max(0.5, (scale * 2));
+                let alpha = Math.max(0.1, Math.min(1, (p.z + sphereRadius) / (sphereRadius * 2)));
+
+                ctx.fillStyle = `rgba(0, 255, 170, ${alpha})`;
+                ctx.beginPath(); ctx.arc(x2d, y2d, size, 0, Math.PI * 2); ctx.fill();
+            }
+            requestAnimationFrame(animateSphere);
+        }
+        
+        window.addEventListener('resize', () => { 
+            width = canvas.width = window.innerWidth; 
+            height = canvas.height = window.innerHeight; 
+            initSphere(); 
+        });
+        initSphere(); animateSphere();
+
+        // ==========================================
+        // 3. DESKTOP ONLY: MAGNETIC CURSOR & BUTTONS
+        // ==========================================
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            const cCore = document.querySelector('.cursor-core');
+            const cRing = document.querySelector('.cursor-ring');
+            let cX = window.innerWidth/2, cY = window.innerHeight/2;
+            let rX = cX, rY = cY;
+
+            window.addEventListener('mousemove', (e) => { cX = e.clientX; cY = e.clientY; cCore.style.left = `${cX}px`; cCore.style.top = `${cY}px`; });
+            function animateCursor() {
+                rX += (cX - rX) * 0.15; rY += (cY - rY) * 0.15;
+                cRing.style.left = `${rX}px`; cRing.style.top = `${rY}px`;
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            document.querySelectorAll('.target').forEach(el => {
+                el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+                el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+            });
+
+            document.querySelectorAll('.magnet-wrap').forEach(wrap => {
+                const btn = wrap.querySelector('.magnet-btn');
+                const text = wrap.querySelector('.magnet-text');
+                wrap.addEventListener('mousemove', (e) => {
+                    const rect = wrap.getBoundingClientRect();
+                    const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
+                    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+                    btn.style.transform = `translate(${x}px, ${y}px)`;
+                    text.style.transform = `translate(${x * 0.4}px, ${y * 0.4}px)`;
+                });
+                wrap.addEventListener('mouseleave', () => {
+                    btn.style.transform = `translate(0,0)`; text.style.transform = `translate(0,0)`;
+                });
+            });
+        }
+
+        // ==========================================
+        // 4. BOUNDED RESPONSIVE PARALLAX
+        // ==========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.classList.add('in-view'); observer.unobserve(entry.target); }
+            });
+        }, { threshold: 0.15 });
+
+        function initObservers() { document.querySelectorAll('.scroll-shutter').forEach(el => observer.observe(el)); }
+        initObservers();
+
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.p-img').forEach(img => {
+                const rect = img.parentElement.getBoundingClientRect();
+                if(rect.top < window.innerHeight && rect.bottom > 0) {
+                    const scrollPercent = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+                    let moveY = -10 + (scrollPercent * 20); 
+                    if(moveY < -10) moveY = -10; if(moveY > 10) moveY = 10;
+                    img.style.transform = `translateY(${moveY}%)`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
